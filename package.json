@@ -1,0 +1,25 @@
+{
+  "name": "artistry",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "firebase": "^7.20.0",
+    "firebase-admin": "^9.2.0",
+    "pouchdb": "^7.2.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reidbacon/artistry.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/reidbacon/artistry/issues"
+  },
+  "homepage": "https://github.com/reidbacon/artistry#readme"
+}
