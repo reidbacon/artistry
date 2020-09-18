@@ -1,5 +1,13 @@
 var database = firebase.database();
 
+var allSongs = [];
+var songs = [];
+var songNum = 0;
+var leftSongIndex = 0;
+var rightSongIndex = 0;
+var leftElo = 0;
+var rightElo = 0;
+
 // SET EXAMPLE
 // database.ref('songs/' + "foreverandalways").set({
 //     elo: "1400",
@@ -13,58 +21,83 @@ var database = firebase.database();
 let leftButton = document.getElementById('left');
 let rightButton = document.getElementById('right');
 
-leftButton.innerHTML = "foreverandalways";
-rightButton.innerHTML = "lookwhatyoumademedo";
-
-var leftElo = 0;
-var rightElo = 0;
-
-resetElos();
+getSongsFromDB();
 
 leftButton.addEventListener("click", evt => {
-    calculateElo(leftElo, rightElo, "left");
+    calculateElo(leftSongIndex, rightSongIndex, "left");
+    pickTwo();
 })
 
 rightButton.addEventListener("click", evt => {
-    calculateElo(rightElo, leftElo, "right");
+    calculateElo(leftSongIndex, rightSongIndex, "right");
+    pickTwo();
 })
 
-function calculateElo(a, b, winner) {
-    var expectedA = (1.0 / (1.0 + Math.pow(10, ((b - a) / 400))));
-    var expectedB = (1.0 / (1.0 + Math.pow(10, ((a - b) / 400))));
-    console.log("a wins = " + expectedA + " and b wins = " + expectedB);
-
-    var newA = a + (24 * (1 - expectedA));
-    var newB = b + (24 * (0 - expectedB));
-    console.log("a is now = " + newA + " and b is now = " + newB);
-
+function calculateElo(leftIndex, rightIndex, winner) {
     if(winner == "left") {
-        database.ref('songs/' + "foreverandalways").set({
-            elo: newA,
+        var leftWinChance = (1.0 / (1.0 + Math.pow(10, ((leftElo - rightElo) / 400))));
+        var rightWinChance = (1.0 / (1.0 + Math.pow(10, ((rightElo - leftElo) / 400))));
+        var newLeftElo = leftElo + (24 * (1 - leftWinChance));
+        var newRightElo = rightElo + (24 * (0 - rightWinChance));
+        database.ref('/songs/' + songs[leftIndex]).update({
+            elo: newLeftElo,
         });
-        database.ref('songs/' + "lookwhatyoumademedo").set({
-            elo: newB,
+        database.ref('/songs/' + songs[rightIndex]).update({
+            elo: newRightElo,
         });
     } else {
-        database.ref('songs/' + "foreverandalways").set({
-            elo: newB,
+        var rightWinChance = (1.0 / (1.0 + Math.pow(10, ((rightElo - leftElo) / 400))));
+        var leftWinChance = (1.0 / (1.0 + Math.pow(10, ((leftElo - rightElo) / 400))));
+        var newRightElo = rightElo + (24 * (1 - rightWinChance));
+        var newLeftElo = leftElo + (24 * (0 - leftWinChance));
+        database.ref('/songs/' + songs[rightIndex]).update({
+            elo: newRightElo,
         });
-        database.ref('songs/' + "lookwhatyoumademedo").set({
-            elo: newA,
+        database.ref('/songs/' + songs[leftIndex]).update({
+            elo: newLeftElo,
         });
     }
-
-    resetElos();
 }
 
-function resetElos() {
-    database.ref('/songs/foreverandalways').once('value').then(function(snapshot) {
+function getData(left, right) {
+    database.ref('/songs/' + left).once('value').then(function(snapshot) {
+        leftButton.innerHTML = snapshot.val().title;
         leftElo = snapshot.val().elo;
-        console.log("left set at " + leftElo);
     });
-    
-    database.ref('/songs/lookwhatyoumademedo').once('value').then(function(snapshot) {
+    database.ref('/songs/' + right).once('value').then(function(snapshot) {
+        rightButton.innerHTML = snapshot.val().title;
         rightElo = snapshot.val().elo;
-        console.log("right set at " + rightElo);
     });
+}
+
+function getSongsFromDB() {
+    database.ref('/songs').once('value').then(function(snapshot) {
+        allSongs = snapshot.toJSON();
+        getNumOfSongs();
+        buildSongArray();
+        pickTwo();
+    });
+}
+
+// This is so fucking hacky
+function getNumOfSongs() {
+    for(i = 0; i < 100; i++) {
+        if(allSongs[i] != undefined) {
+            songNum++;
+        }
+    }
+}
+
+function buildSongArray() {
+    for(i = 0; i < songNum; i++) {
+        songs.push(i);
+    }
+}
+
+function pickTwo() {
+    leftSongIndex = Math.floor(Math.random() * songNum);
+    do {
+        rightSongIndex = Math.floor(Math.random() * songNum);
+    } while (leftSongIndex == rightSongIndex)
+    getData(leftSongIndex, rightSongIndex);
 }
