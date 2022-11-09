@@ -1,4 +1,3 @@
-var database = firebase.database();
 
 var allSongs = [];
 var songs = [];
@@ -39,23 +38,13 @@ function calculateElo(leftIndex, rightIndex, winner) {
         var rightWinChance = (1.0 / (1.0 + Math.pow(10, ((rightElo - leftElo) / 400))));
         var newLeftElo = leftElo + (24 * (1 - leftWinChance));
         var newRightElo = rightElo + (24 * (0 - rightWinChance));
-        database.ref('/songs/' + songs[leftIndex]).update({
-            elo: newLeftElo,
-        });
-        database.ref('/songs/' + songs[rightIndex]).update({
-            elo: newRightElo,
-        });
+        console.log("sending update");
     } else {
         var rightWinChance = (1.0 / (1.0 + Math.pow(10, ((rightElo - leftElo) / 400))));
         var leftWinChance = (1.0 / (1.0 + Math.pow(10, ((leftElo - rightElo) / 400))));
         var newRightElo = rightElo + (24 * (1 - rightWinChance));
         var newLeftElo = leftElo + (24 * (0 - leftWinChance));
-        database.ref('/songs/' + songs[rightIndex]).update({
-            elo: newRightElo,
-        });
-        database.ref('/songs/' + songs[leftIndex]).update({
-            elo: newLeftElo,
-        });
+        console.log("sending update 2");
     }
 }
 
@@ -71,12 +60,7 @@ function getData(left, right) {
 }
 
 function getSongsFromDB() {
-    database.ref('/songs').once('value').then(function(snapshot) {
-        allSongs = snapshot.toJSON();
-        getNumOfSongs();
-        buildSongArray();
-        pickTwo();
-    });
+
 }
 
 // This is so fucking hacky
